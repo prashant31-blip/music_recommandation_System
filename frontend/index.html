@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VibeNest AI - Intelligent Music Recommendation System</title>
+  <meta name="description" content="Discover songs tailored to your taste with deep audio feature cosine similarity, mood sliders, and personalized listening vectors.">
+
+  <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/player.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="app-sidebar">
+      <div class="brand-container">
+        <div class="brand-logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+        </div>
+        <div>
+          <h1 class="brand-title">VibeNest AI</h1>
+          <div class="brand-subtitle">Music Recommender</div>
+        </div>
+      </div>
+
+      <ul class="nav-menu">
+        <li class="nav-item">
+          <button class="active" data-view="discover" id="nav-btn-discover">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/></svg>
+            <span>Discover & Hits</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button data-view="radar" id="nav-btn-radar">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+            <span>Track Radar (Similar)</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button data-view="mood" id="nav-btn-mood">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+            <span>Mood & Vibe Lab</span>
+          </button>
+        </li>
+        <li class="nav-item">
+          <button data-view="library" id="nav-btn-library">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            <span>My Taste & Likes</span>
+          </button>
+        </li>
+      </ul>
+
+      <div class="sidebar-stats">
+        <div class="stats-label">Engine Status</div>
+        <div class="stats-value">
+          <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#8b5cf6; box-shadow:0 0 8px rgba(139, 92, 246, 0.6);"></span>
+          40,000 Tracks
+        </div>
+        <div class="stats-sub">Normalized Cosine Matrix &bull; SQLite</div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      <!-- Sticky Top Header -->
+      <header class="top-header">
+        <div class="search-container">
+          <div class="search-input-wrapper">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="main-search-input" class="search-input" placeholder="Search 40,000+ songs, artists, or genres..." autocomplete="off" />
+          </div>
+          <!-- Autocomplete Dropdown -->
+          <div class="search-dropdown" id="search-dropdown"></div>
+        </div>
+
+        <div class="header-actions">
+          <select id="genre-select" class="genre-filter-select">
+            <option value="">All Genres</option>
+          </select>
+        </div>
+      </header>
+
+      <!-- View Containers -->
+      <main class="content-body">
+        
+        <!-- ================= VIEW 1: DISCOVER ================= -->
+        <section class="view-section active" id="view-discover">
+          <!-- Quick Mood Selector Banner -->
+          <div class="mood-chips-container">
+            <div class="mood-chip active" data-mood="all">🔥 All Trending</div>
+            <div class="mood-chip" data-mood="workout">⚡ Workout Beast</div>
+            <div class="mood-chip" data-mood="chill">🌙 Midnight Chill</div>
+            <div class="mood-chip" data-mood="focus">☕ Deep Focus</div>
+            <div class="mood-chip" data-mood="party">🎉 Party Grooves</div>
+            <div class="mood-chip" data-mood="lofi">🌧️ Melancholy Lo-Fi</div>
+          </div>
+
+          <!-- Section: Recommended For You -->
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Recommended For You</h2>
+              <div class="section-subtitle">Adaptive hybrid feed updating as you like and play songs</div>
+            </div>
+          </div>
+          <div class="tracks-grid" id="recommended-tracks-grid" style="margin-bottom: 40px;">
+            <div class="empty-state">Loading personal recommendations...</div>
+          </div>
+
+          <!-- Section: Trending Tracks -->
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Trending & Popular Hits</h2>
+              <div class="section-subtitle">Top stream rankings curated across 112 genres</div>
+            </div>
+          </div>
+          <div class="tracks-grid" id="trending-tracks-grid">
+            <div class="empty-state">Loading tracks...</div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW 2: TRACK RADAR ================= -->
+        <section class="view-section" id="view-radar">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">Track Radar: Audio Feature Matcher</h2>
+              <div class="section-subtitle">Explore songs with matching tempo, valence, energy, and acoustic contours</div>
+            </div>
+          </div>
+
+          <div class="radar-split-container">
+            <!-- Left: Seed Track Spotlight & Radar Chart -->
+            <div class="seed-spotlight-card">
+              <img id="radar-seed-cover" class="spotlight-cover-art" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80" alt="Seed Cover" />
+              <h3 id="radar-seed-title" class="spotlight-title">Unholy</h3>
+              <div id="radar-seed-artist" class="spotlight-artist">Sam Smith &bull; Kim Petras</div>
+
+              <!-- Audio Traits Pills -->
+              <div class="audio-feature-pills">
+                <div class="feature-pill">
+                  <div class="feature-pill-name">⚡ Energy</div>
+                  <div class="feature-pill-val" id="feat-energy">72%</div>
+                </div>
+                <div class="feature-pill">
+                  <div class="feature-pill-name">🎭 Valence</div>
+                  <div class="feature-pill-val" id="feat-valence">64%</div>
+                </div>
+                <div class="feature-pill">
+                  <div class="feature-pill-name">💃 Danceability</div>
+                  <div class="feature-pill-val" id="feat-dance">80%</div>
+                </div>
+                <div class="feature-pill">
+                  <div class="feature-pill-name">⏱️ Tempo</div>
+                  <div class="feature-pill-val" id="feat-tempo">131 BPM</div>
+                </div>
+              </div>
+
+              <!-- Radar Canvas -->
+              <div class="canvas-radar-container">
+                <canvas id="canvas-radar" width="340" height="260"></canvas>
+              </div>
+
+              <div class="radar-legend">
+                <span><span class="legend-dot dot-seed"></span>Seed Song</span>
+                <span><span class="legend-dot dot-compare"></span>Hovered Match</span>
+              </div>
+            </div>
+
+            <!-- Right: Nearest Neighbors Grid -->
+            <div>
+              <h3 style="font-size: 1.15rem; margin-bottom: 16px; font-weight: 700;">Top Mathematically Closest Matches</h3>
+              <div class="tracks-grid" id="radar-similar-grid">
+                <div class="empty-state">Select any song to calculate similarity radar</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW 3: MOOD LAB ================= -->
+        <section class="view-section" id="view-mood">
+          <div class="mood-lab-container">
+            <div class="section-header" style="justify-content: center; text-align: center;">
+              <div>
+                <h2 class="section-title">Mood & Vibe Laboratory</h2>
+                <div class="section-subtitle">Dial in exact acoustic parameters to craft your sonic atmosphere</div>
+              </div>
+            </div>
+
+            <!-- Presets -->
+            <div class="preset-tiles-row">
+              <div class="preset-tile" data-valence="0.9" data-energy="0.92" data-dance="0.88" data-acoustic="0.1" data-tempo="130">
+                <div class="preset-emoji">🏖️</div>
+                <div class="preset-name">Summer Party</div>
+              </div>
+              <div class="preset-tile" data-valence="0.65" data-energy="0.25" data-dance="0.4" data-acoustic="0.85" data-tempo="85">
+                <div class="preset-emoji">🧘</div>
+                <div class="preset-name">Zen Acoustic</div>
+              </div>
+              <div class="preset-tile" data-valence="0.5" data-energy="0.75" data-dance="0.7" data-acoustic="0.1" data-tempo="115">
+                <div class="preset-emoji">🏎️</div>
+                <div class="preset-name">Night Drive</div>
+              </div>
+              <div class="preset-tile" data-valence="0.4" data-energy="0.3" data-dance="0.5" data-acoustic="0.7" data-tempo="80">
+                <div class="preset-emoji">☕</div>
+                <div class="preset-name">Coffee Lo-Fi</div>
+              </div>
+              <div class="preset-tile" data-valence="0.8" data-energy="0.98" data-dance="0.75" data-acoustic="0.05" data-tempo="150">
+                <div class="preset-emoji">🥊</div>
+                <div class="preset-name">Power Gym</div>
+              </div>
+            </div>
+
+            <!-- Continuous Sliders -->
+            <div class="sliders-panel">
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">🎭 Valence (Mood Polarity)</span>
+                  <span class="slider-val-badge" id="badge-valence">50%</span>
+                </div>
+                <input type="range" id="slider-valence" class="custom-range-slider" min="0" max="1" step="0.01" value="0.5" />
+                <div class="slider-scale-hints">
+                  <span>Melancholic / Dark</span>
+                  <span>Euphoric / Cheerful</span>
+                </div>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">⚡ Energy Level</span>
+                  <span class="slider-val-badge" id="badge-energy">50%</span>
+                </div>
+                <input type="range" id="slider-energy" class="custom-range-slider" min="0" max="1" step="0.01" value="0.5" />
+                <div class="slider-scale-hints">
+                  <span>Mellow & Calm</span>
+                  <span>Explosive & Hyper</span>
+                </div>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">💃 Danceability</span>
+                  <span class="slider-val-badge" id="badge-dance">50%</span>
+                </div>
+                <input type="range" id="slider-dance" class="custom-range-slider" min="0" max="1" step="0.01" value="0.5" />
+                <div class="slider-scale-hints">
+                  <span>Steady Listening</span>
+                  <span>Club Ready Groove</span>
+                </div>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">🎸 Acousticness</span>
+                  <span class="slider-val-badge" id="badge-acoustic">50%</span>
+                </div>
+                <input type="range" id="slider-acoustic" class="custom-range-slider" min="0" max="1" step="0.01" value="0.5" />
+                <div class="slider-scale-hints">
+                  <span>Electronic Synthesizer</span>
+                  <span>Raw Organic Instruments</span>
+                </div>
+              </div>
+
+              <div class="slider-group">
+                <div class="slider-header">
+                  <span class="slider-label">⏱️ Tempo (BPM)</span>
+                  <span class="slider-val-badge" id="badge-tempo">120 BPM</span>
+                </div>
+                <input type="range" id="slider-tempo" class="custom-range-slider" min="60" max="180" step="1" value="120" />
+                <div class="slider-scale-hints">
+                  <span>60 BPM (Slow Ballad)</span>
+                  <span>180 BPM (Fast Pace)</span>
+                </div>
+              </div>
+
+              <button id="btn-trigger-mood" class="btn-trigger-mood">
+                Search Vibe Coordinates
+              </button>
+            </div>
+
+            <!-- Mood Results -->
+            <div class="section-header">
+              <h3 class="section-title" style="font-size: 1.3rem;">Matching Songs for This Vibe</h3>
+            </div>
+            <div class="tracks-grid" id="mood-results-grid">
+              <div class="empty-state">Tweak the sliders or click a preset above to discover tracks!</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ================= VIEW 4: MY TASTE ================= -->
+        <section class="view-section" id="view-library">
+          <div class="section-header">
+            <div>
+              <h2 class="section-title">My Taste Profile & Saved Songs</h2>
+              <div class="section-subtitle">Real-time vector analytics calculated from your listening behavior</div>
+            </div>
+          </div>
+
+          <!-- Analytics Metric Cards -->
+          <div class="taste-analytics-banner">
+            <div class="taste-metric-card">
+              <div class="metric-icon-box">💖</div>
+              <div>
+                <div class="stats-label">Liked Songs</div>
+                <div class="stats-value" id="taste-likes-count">0</div>
+              </div>
+            </div>
+            <div class="taste-metric-card">
+              <div class="metric-icon-box">🎵</div>
+              <div>
+                <div class="stats-label">Top Genre Taste</div>
+                <div class="stats-value" id="taste-dominant-genre" style="font-size: 0.85rem;">Discovering...</div>
+              </div>
+            </div>
+            <div class="taste-metric-card">
+              <div class="metric-icon-box">⚡</div>
+              <div>
+                <div class="stats-label">Average Energy</div>
+                <div class="stats-value" id="taste-energy-val">50%</div>
+              </div>
+            </div>
+            <div class="taste-metric-card">
+              <div class="metric-icon-box">🎭</div>
+              <div>
+                <div class="stats-label">Average Positivity</div>
+                <div class="stats-value" id="taste-valence-val">50%</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Liked Songs Grid -->
+          <div class="tracks-grid" id="library-tracks-grid">
+            <div class="empty-state">No liked tracks yet</div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- ================= FIXED BOTTOM AUDIO PLAYER DOCK ================= -->
+  <div class="bottom-player-dock" id="bottom-player">
+    <!-- Left: Track Details & Album Disc -->
+    <div class="player-left">
+      <div class="player-artwork-container" id="player-artwork-container">
+        <img id="player-artwork-img" class="player-artwork-img" src="https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=600&auto=format&fit=crop&q=80" alt="Cover" />
+      </div>
+      <div class="player-track-details">
+        <div id="player-track-name" class="player-track-name">Select a Track</div>
+        <div id="player-artist-name" class="player-artist-name">Click play on any song</div>
+      </div>
+      <button class="player-like-btn" id="btn-player-like" title="Like Song">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
+      </button>
+    </div>
+
+    <!-- Center: Playback Controls & Scrubber -->
+    <div class="player-center">
+      <div class="player-buttons-row">
+        <button class="btn-player-control" id="btn-player-prev" title="Previous Track">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+        </button>
+        <button class="btn-player-control btn-player-play" id="btn-player-play" title="Play / Pause">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <button class="btn-player-control" id="btn-player-next" title="Next Track">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+        </button>
+      </div>
+
+      <div class="player-progress-container">
+        <span class="time-label" id="label-current-time">0:00</span>
+        <div class="progress-bar-rail" id="progress-bar-rail">
+          <div class="progress-bar-fill" id="progress-bar-fill">
+            <div class="progress-scrub-handle"></div>
+          </div>
+        </div>
+        <span class="time-label" id="label-duration">0:30</span>
+      </div>
+    </div>
+
+    <!-- Right: Animated Canvas Equalizer & Volume -->
+    <div class="player-right">
+      <canvas id="canvas-equalizer" class="canvas-equalizer" width="90" height="28"></canvas>
+      <div class="volume-wrapper">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        <input type="range" id="volume-slider" class="volume-slider" min="0" max="1" step="0.05" value="0.8" />
+      </div>
+      <span class="preview-badge-hint">Preview</span>
+    </div>
+  </div>
+
+  <!-- JavaScript Modules -->
+  <script type="module" src="js/app.js?v=2.3"></script>
+</body>
+</html>
